@@ -41,6 +41,7 @@ services:
       - "3306:3306" # 暴露 MySQL 端口（可选，用于外部访问/调试）
     networks:
       - mcy_shop_network
+    command: --default-authentication-plugin=caching_sha2_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$${MYSQL_USER}", "-p$${MYSQL_PASSWORD}"]
       interval: 10s
