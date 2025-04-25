@@ -24,6 +24,14 @@
 ## 安装文档
 - 官方文档：[https://wiki.mcy.im](https://wiki.mcy.im)
 
+## 启动方式
+> docker-compose --profile full up -d 全量启动 ng + mysql + redis
+
+> docker-compose --profile basic up -d 基础启动 只启动本项目
+
+> docker-compose --profile separated up -d 分开启动  ng + mysql 
+
+
 ## 快速体验
 - 后台演示地址：http://42.51.0.159:4399/admin
   - 超级管理员演示账号：demo@qq.com 密码：abc123456

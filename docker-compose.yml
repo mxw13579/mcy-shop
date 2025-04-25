@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # --- 基础服务 (大多数配置文件通用) ---
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcy_shop_app
+    volumes:
+      - .:/var/www/html # 挂载项目代码
+      # 如果需要，您可能需要为持久存储（如上传文件）添加卷
+      # - ./storage/app:/var/www/html/storage/app
+    networks:
+      - mcy_shop_network
+    environment:
+      # 为您的 PHP 应用程序添加任何必要的环境变量
+      # 示例：数据库连接详细信息（在生产环境中使用 secrets）
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: mcy_shop
+      DB_USERNAME: mcy_user
+      DB_PASSWORD: mcy_password # 在生产环境中使用 secrets！
+    depends_on:
+      db: # 确保数据库在应用程序之前启动（适用于 basic 和 separated 配置文件）
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: mcy_shop_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: mcy_shop
+      MYSQL_USER: mcy_user
+      MYSQL_PASSWORD: mcy_password # 在生产环境中使用 secrets！
+      MYSQL_ROOT_PASSWORD: root_password # 在生产环境中使用 secrets！
+    volumes:
+      - db_data:/var/lib/mysql # 持久化数据库存储
+    ports:
+      - "3306:3306" # 暴露 MySQL 端口（可选，用于外部访问/调试）
+    networks:
+      - mcy_shop_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$${MYSQL_USER}", "-p$${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Web 服务器 (用于 separated 和 full 配置文件) ---
+  nginx:
+    image: nginx:stable-alpine
+    container_name: mcy_shop_nginx
+    ports:
+      - "8080:80" # 将主机端口 8080 映射到容器端口 80
+    volumes:
+      - .:/var/www/html:ro # 以只读方式挂载代码
+      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # 挂载 Nginx 配置
+    networks:
+      - mcy_shop_network
+    depends_on:
+      - app
+
+  # --- 缓存服务 (用于 full 配置文件) ---
+  redis:
+    image: redis:alpine
+    container_name: mcy_shop_redis
+    restart: unless-stopped
+    networks:
+      - mcy_shop_network
+    # 如果需要持久化，请添加卷
+    # volumes:
+    #   - redis_data:/data
+
+# --- 不同粒度的配置文件 ---
+networks:
+  mcy_shop_network:
+    driver: bridge
+
+volumes:
+  db_data: # 用于 MySQL 数据持久化的卷
+  # redis_data: # 用于 Redis 数据持久化的卷 (如果需要，取消注释)
+
+# 定义配置文件
+# 运行特定配置文件：docker-compose --profile <profile_name> up -d
+# 示例：docker-compose --profile basic up -d
+
+# 配置文件 1: Basic (应用程序 + 数据库可直接访问，包含 Nginx 用于服务)
+profiles:
+  basic:
+    services:
+      - app
+
+  # 配置文件 2: Separated (Web 服务器 + 应用程序 + 数据库)
+  separated:
+    services:
+      - nginx
+      - app
+      - db
+
+  # 配置文件 3: Full (Web 服务器 + 应用程序 + 数据库 + 缓存)
+  full:
+    services:
+      - nginx
+      - app
+      - db
+      - redis
