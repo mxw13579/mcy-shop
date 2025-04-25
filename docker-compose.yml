@@ -10,8 +10,6 @@ services:
       - .:/var/www/html # 挂载项目代码
       # 如果需要，您可能需要为持久存储（如上传文件）添加卷
       # - ./storage/app:/var/www/html/storage/app
-    ports:
-      - "9876:9000" 
     networks:
       - mcy_shop_network
     environment:
@@ -48,19 +46,19 @@ services:
       timeout: 5s
       retries: 5
 
-#  # --- Web 服务器 (用于 separated 和 full 配置文件) ---
-#  nginx:
-#    image: nginx:stable-alpine
-#    container_name: mcy_shop_nginx
-#    ports:
-#      - "8642:80" # 将主机端口 8080 映射到容器端口 80
-#    volumes:
-#      - .:/var/www/html:ro # 以只读方式挂载代码
-#      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # 挂载 Nginx 配置
-#    networks:
-#      - mcy_shop_network
-#    depends_on:
-#      - app
+  # --- Web 服务器 (用于 separated 和 full 配置文件) ---
+  nginx:
+    image: nginx:stable-alpine
+    container_name: mcy_shop_nginx
+    ports:
+      - "8642:80" # 将主机端口 8080 映射到容器端口 80
+    volumes:
+      - .:/var/www/html:ro # 以只读方式挂载代码
+      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # 挂载 Nginx 配置
+    networks:
+      - mcy_shop_network
+    depends_on:
+      - app
 #
 #  # --- 缓存服务 (用于 full 配置文件) ---
 #  redis:
