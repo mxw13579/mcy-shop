@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # --- 基础服务 (大多数配置文件通用) ---
   app:
+    image: lzl-shop:1.0
     build:
       context: .
       dockerfile: Dockerfile
@@ -79,28 +80,3 @@ networks:
 volumes:
   db_data: # 用于 MySQL 数据持久化的卷
   # redis_data: # 用于 Redis 数据持久化的卷 (如果需要，取消注释)
-
-# 定义配置文件
-# 运行特定配置文件：docker-compose --profile <profile_name> up -d
-# 示例：docker-compose --profile basic up -d
-
-# 配置文件 1: Basic (应用程序 + 数据库可直接访问，包含 Nginx 用于服务)
-profiles:
-  basic:
-    services:
-      - app
-
-  # 配置文件 2: Separated (Web 服务器 + 应用程序 + 数据库)
-  separated:
-    services:
-      - nginx
-      - app
-      - db
-
-  # 配置文件 3: Full (Web 服务器 + 应用程序 + 数据库 + 缓存)
-  full:
-    services:
-      - nginx
-      - app
-      - db
-      - redis
