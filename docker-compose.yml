@@ -10,6 +10,8 @@ services:
       - .:/var/www/html # 挂载项目代码
       # 如果需要，您可能需要为持久存储（如上传文件）添加卷
       # - ./storage/app:/var/www/html/storage/app
+    ports:
+      - "9876:9000" 
     networks:
       - mcy_shop_network
     environment:
